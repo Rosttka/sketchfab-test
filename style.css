@@ -3,20 +3,39 @@ body, html {
     padding: 0;
     height: 100%;
     width: 100%;
-    overflow: hidden; /* Це прибирає скроллбар */
 }
 
 body {
-    background-color: lightgray; /* Це буде колір фону за замовчуванням */
+    background-color: lightgray; /* Ваш колір фону */
 }
 
+/* Контейнер для Sketchfab canvas */
 .sketchfab-container {
+    position: fixed; /* Закріплюємо його */
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
+    z-index: -1; /* Відправляємо його на задній план */
 }
 
 #api-frame {
     width: 100%;
     height: 100%;
     border: none;
+}
+
+/* Стилі для кнопок */
+.color-controls {
+    position: fixed; /* Закріплюємо їх на екрані */
+    top: 20px; /* Відступ зверху */
+    left: 20px; /* Відступ зліва */
+    z-index: 100; /* Переміщаємо їх на передній план */
+}
+
+.color-controls button {
+    /* Додайте стилі для кнопок, якщо хочете */
+    padding: 10px;
+    margin-right: 10px;
+    cursor: pointer;
 }
