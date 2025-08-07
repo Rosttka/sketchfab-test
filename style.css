@@ -4,7 +4,6 @@ body, html {
     padding: 0;
     height: 100%;
     width: 100%;
-    /* Прибираємо overflow: hidden, щоб прокручувати сторінку, якщо потрібно */
 }
 
 body {
@@ -45,10 +44,10 @@ body {
 .custom-hotspot {
     position: absolute; /* Це ключовий рядок для позиціонування */
     padding: 10px;
-    background-color: rgba(255, 255, 255, 0.8); /* Напівпрозорий фон */
+    background-color: rgba(255, 255, 255, 0.8);
     border: 1px solid #ccc;
     border-radius: 5px;
     cursor: pointer;
-    z-index: 1000; /* Дуже високий z-index, щоб завжди бути зверху */
-    pointer-events: auto; /* Дозволяє клікати на самі гарячі точки */
+    z-index: 1000;
+    pointer-events: auto;
 }

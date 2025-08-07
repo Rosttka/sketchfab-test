@@ -11,12 +11,12 @@ function initializeSketchfabAPI() {
     const iframe = document.getElementById('api-frame');
     const client = new Sketchfab('1.0.0', iframe);
 
+    // Зверніть увагу: ідентифікатор моделі має бути в лапках
     client.init('40fa706855ed407fbbd0123951988cc0', {
         success: function(fetchedApi) {
-            api = fetchedApi; // Присвоюємо об'єкт API нашій глобальній змінній
+            api = fetchedApi;
             api.start();
             api.addEventListener('viewerready', function() {
-                // Вікно перегляду готове, тепер ми отримуємо анотації та створюємо наш інтерфейс
                 setupHotspots();
             });
         },
@@ -40,25 +40,18 @@ function setupHotspots() {
             hotspot.className = 'custom-hotspot';
             hotspot.innerText = annotation.name;
             hotspot.onclick = function() {
-                // При натисканні переміщуємо камеру до позиції анотації
                 api.gotoAnnotation(annotation.index);
-
-                // Наприклад, ви також можете показати тут спливаюче вікно
+                // Тут можна додати логіку для спливаючого вікна
                 // showPopup(annotation.name, annotation.content);
             };
 
-            // Тут вам потрібно буде розрахувати позицію гарячої точки на екрані.
-            // Це найскладніша частина, яка вимагає перетворення 3D-координат у 2D.
-            // Наразі давайте просто додамо кнопки до контейнера.
+            // Додаємо кнопку до контейнера
             uiContainer.appendChild(hotspot);
         });
     });
 }
 
-// Викликаємо функцію ініціалізації, коли сторінка завантажується
-window.addEventListener('DOMContentLoaded', initializeSketchfabAPI);
-
-// Додайте ці функції до вашого файлу script.js
+// Додаємо функції для керування спливаючим вікном
 function showPopup(title, content) {
     const popup = document.getElementById('info-popup');
     const titleElement = document.getElementById('popup-title');
@@ -74,4 +67,5 @@ function hidePopup() {
     popup.style.display = 'none';
 }
 
-// Test
+// Викликаємо функцію ініціалізації, коли сторінка завантажується
+window.addEventListener('DOMContentLoaded', initializeSketchfabAPI);
