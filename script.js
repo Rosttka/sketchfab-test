@@ -56,25 +56,42 @@ function createCustomHotspots() {
     console.log('✅ Кастомні хотспоти створені');
 }
 
+function createCustomHotspots() {
+    annotations.forEach((annotation, i) => {
+        const hotspot = document.createElement('button');
+        hotspot.className = 'custom-hotspot';
+        hotspot.id = `hotspot-${i}`; // використовуємо індекс масиву
+        hotspot.innerText = annotation.name || `Hotspot ${i+1}`;
+
+        hotspot.onclick = function () {
+            console.log(`👉 Перехід до анотації #${i}`);
+            api.gotoAnnotation(i);
+        };
+
+        uiContainer.appendChild(hotspot);
+    });
+
+    console.log('✅ Кастомні хотспоти створені');
+}
+
 function updateHotspotsPosition() {
-    annotations.forEach(annotation => {
+    annotations.forEach((annotation, i) => {
         if (!annotation.position) {
             console.warn('⚠️ Анотація не має position:', annotation);
             return;
         }
 
-        // Перетворюємо масив [x, y, z] у об'єкт {x, y, z}
         const pos = Array.isArray(annotation.position)
             ? { x: annotation.position[0], y: annotation.position[1], z: annotation.position[2] }
             : annotation.position;
 
         api.getWorldToScreenCoordinates(pos, function (err, screenCoordinates) {
             if (err || !screenCoordinates || typeof screenCoordinates.x !== 'number' || typeof screenCoordinates.y !== 'number') {
-                console.error(`❌ Помилка getWorldToScreenCoordinates для анотації #${annotation.index}:`, err || screenCoordinates);
+                console.error(`❌ Помилка getWorldToScreenCoordinates для анотації #${i}:`, err || screenCoordinates);
                 return;
             }
 
-            const hotspotElement = document.getElementById(`hotspot-${annotation.index}`);
+            const hotspotElement = document.getElementById(`hotspot-${i}`);
             if (hotspotElement) {
                 hotspotElement.style.left = `${screenCoordinates.x}px`;
                 hotspotElement.style.top = `${screenCoordinates.y}px`;
@@ -86,7 +103,7 @@ function updateHotspotsPosition() {
 
                 hotspotElement.style.display = isOutside ? 'none' : 'block';
             } else {
-                console.warn(`⚠️ DOM-елемент hotspot-${annotation.index} не знайдено`);
+                console.warn(`⚠️ DOM-елемент hotspot-${i} не знайдено`);
             }
         });
     });
