@@ -66,8 +66,8 @@ function updateHotspotsPosition() {
         }
 
         const pos = Array.isArray(annotation.position)
-            ? { x: annotation.position[0], y: annotation.position[1], z: annotation.position[2] }
-            : annotation.position;
+            ? annotation.position
+            : [annotation.position.x, annotation.position.y, annotation.position.z];
 
         console.log('Позиція анотації:', pos);
         api.getWorldToScreenCoordinates(pos, function (err, screenCoordinates) {
