@@ -54,6 +54,7 @@ function createCustomHotspots() {
     });
 
     console.log('✅ Кастомні хотспоти створені');
+    updateHotspotsPosition();
 }
 
 function updateHotspotsPosition() {
