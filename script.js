@@ -11,7 +11,7 @@ function initializeSketchfabAPI() {
     const iframe = document.getElementById('api-frame');
     const client = new Sketchfab('1.0.0', iframe);
 
-    client.init(40fa706855ed407fbbd0123951988cc0, {
+    client.init('40fa706855ed407fbbd0123951988cc0', {
         success: function(fetchedApi) {
             api = fetchedApi; // Присвоюємо об'єкт API нашій глобальній змінній
             api.start();
@@ -73,3 +73,5 @@ function hidePopup() {
     const popup = document.getElementById('info-popup');
     popup.style.display = 'none';
 }
+
+// Test
