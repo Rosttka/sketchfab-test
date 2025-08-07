@@ -63,7 +63,12 @@ function updateHotspotsPosition() {
             return;
         }
 
-        api.getWorldToScreenCoordinates(annotation.position, function (err, screenCoordinates) {
+        // Перетворюємо масив [x, y, z] у об'єкт {x, y, z}
+        const pos = Array.isArray(annotation.position)
+            ? { x: annotation.position[0], y: annotation.position[1], z: annotation.position[2] }
+            : annotation.position;
+
+        api.getWorldToScreenCoordinates(pos, function (err, screenCoordinates) {
             if (err || !screenCoordinates || typeof screenCoordinates.x !== 'number' || typeof screenCoordinates.y !== 'number') {
                 console.error(`❌ Помилка getWorldToScreenCoordinates для анотації #${annotation.index}:`, err || screenCoordinates);
                 return;
