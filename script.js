@@ -11,24 +11,24 @@ function initializeSketchfabAPI() {
             api = fetchedApi;
             api.start();
 
-            api.addEventListener('viewerready', function() {
+            api.addEventListener('viewerready', function () {
                 console.log("Sketchfab готовий");
 
-                api.getAnnotationList(function(err, fetchedAnnotations) {
+                api.getAnnotationList(function (err, fetchedAnnotations) {
                     if (err) {
-                        console.error("Не вдалося отримати анотації:", err);
+                        console.error("Помилка отримання анотацій:", err);
                         return;
                     }
 
-                    console.log("Анотації:", fetchedAnnotations);
                     annotations = fetchedAnnotations;
                     createHotspots();
+
                     api.addEventListener('viewerprocess', updateHotspotPositions);
                 });
             });
         },
-        error: function() {
-            console.error('Помилка ініціалізації Sketchfab');
+        error: function () {
+            console.error('Помилка API');
         }
     });
 }
@@ -38,7 +38,10 @@ function createHotspots() {
         const hotspot = document.createElement('div');
         hotspot.className = 'custom-hotspot';
         hotspot.id = `hotspot-${annotation.index}`;
-        hotspot.textContent = annotation.name;
+        hotspot.innerText = annotation.name;
+
+        hotspot.onclick = () => api.gotoAnnotation(annotation.index);
+
         uiContainer.appendChild(hotspot);
     });
 }
@@ -48,14 +51,20 @@ function updateHotspotPositions() {
         const el = document.getElementById(`hotspot-${annotation.index}`);
         if (!el) return;
 
-        // Переважно у анотацій є viewpointPosition або position
-        const pos = annotation.position || annotation.viewpointPosition || annotation.eye;
-        if (!pos) {
-            console.warn(`Немає позиції для анотації ${annotation.index}`);
+        // Перетворюємо масив [x, y, z] → об'єкт {x, y, z}
+        const posArray = annotation.position;
+        if (!Array.isArray(posArray) || posArray.length !== 3) {
+            console.warn(`Анотація ${annotation.index} не має коректної позиції`);
             return;
         }
 
-        api.getWorldToScreenCoordinates(pos, function(err, screenCoordinates) {
+        const pos = {
+            x: posArray[0],
+            y: posArray[1],
+            z: posArray[2]
+        };
+
+        api.getWorldToScreenCoordinates(pos, function (err, screenCoordinates) {
             if (err || !screenCoordinates) {
                 console.error('Координати не отримано:', err);
                 return;
@@ -64,7 +73,11 @@ function updateHotspotPositions() {
             el.style.position = 'absolute';
             el.style.left = `${screenCoordinates.x}px`;
             el.style.top = `${screenCoordinates.y}px`;
-            el.style.display = 'block';
+
+            const outOfView = screenCoordinates.viewport.x < 0 || screenCoordinates.viewport.x > 1 ||
+                              screenCoordinates.viewport.y < 0 || screenCoordinates.viewport.y > 1;
+
+            el.style.display = outOfView ? 'none' : 'block';
         });
     });
 }
