@@ -66,7 +66,7 @@ function updateHotspotsPosition() {
         }
 
         const pos = Array.isArray(annotation.position)
-            ? annotation.position
+            ? Array.from(annotation.position)
             : [annotation.position.x, annotation.position.y, annotation.position.z];
 
         console.log('Позиція анотації:', pos);
