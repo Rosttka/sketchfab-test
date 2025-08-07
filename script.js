@@ -39,28 +39,10 @@ function initializeSketchfabAPI() {
 }
 
 function createCustomHotspots() {
-    annotations.forEach(annotation => {
-        const hotspot = document.createElement('button');
-        hotspot.className = 'custom-hotspot';
-        hotspot.id = `hotspot-${annotation.index}`;
-        hotspot.innerText = annotation.name;
-
-        hotspot.onclick = function () {
-            console.log(`👉 Перехід до анотації #${annotation.index}`);
-            api.gotoAnnotation(annotation.index);
-        };
-
-        uiContainer.appendChild(hotspot);
-    });
-
-    console.log('✅ Кастомні хотспоти створені');
-}
-
-function createCustomHotspots() {
     annotations.forEach((annotation, i) => {
         const hotspot = document.createElement('button');
         hotspot.className = 'custom-hotspot';
-        hotspot.id = `hotspot-${i}`; // використовуємо індекс масиву
+        hotspot.id = `hotspot-${i}`;
         hotspot.innerText = annotation.name || `Hotspot ${i+1}`;
 
         hotspot.onclick = function () {
