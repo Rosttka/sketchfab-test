@@ -68,21 +68,19 @@ function updateHotspotsPosition() {
             : annotation.position;
 
         api.getWorldToScreenCoordinates(pos, function (err, screenCoordinates) {
-    if (err || !screenCoordinates || typeof screenCoordinates.x !== 'number' || typeof screenCoordinates.y !== 'number') {
-        console.error(`❌ Помилка getWorldToScreenCoordinates для анотації #${i}:`, err || screenCoordinates);
-        return;
-    }
+            if (err || !screenCoordinates || typeof screenCoordinates.x !== 'number' || typeof screenCoordinates.y !== 'number') {
+                console.error(`❌ Помилка getWorldToScreenCoordinates для анотації #${i}:`, err || screenCoordinates);
+                return;
+            }
 
-    // Додаємо лог координат
-    console.log(`hotspot-${i}:`, screenCoordinates.x, screenCoordinates.y);
+            // Додаємо лог координат
+            console.log(`hotspot-${i}:`, screenCoordinates.x, screenCoordinates.y);
 
-    const iframeRect = document.getElementById('api-frame').getBoundingClientRect();
-    const hotspotElement = document.getElementById(`hotspot-${i}`);
-        if (hotspotElement) {
-            hotspotElement.style.left = `${screenCoordinates.x + iframeRect.left}px`;
-            hotspotElement.style.top = `${screenCoordinates.y + iframeRect.top}px`;
-    // ...далі по коду...
-}
+            const iframeRect = document.getElementById('api-frame').getBoundingClientRect();
+            const hotspotElement = document.getElementById(`hotspot-${i}`);
+            if (hotspotElement) {
+                hotspotElement.style.left = `${screenCoordinates.x + iframeRect.left}px`;
+                hotspotElement.style.top = `${screenCoordinates.y + iframeRect.top}px`;
 
                 const isOutside =
                     screenCoordinates.viewport &&
