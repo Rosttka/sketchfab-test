@@ -1,19 +1,22 @@
+/* Базові налаштування для всієї сторінки */
 body, html {
     margin: 0;
     padding: 0;
     height: 100%;
     width: 100%;
+    /* Прибираємо overflow: hidden, щоб прокручувати сторінку, якщо потрібно */
 }
 
 body {
-    background-color: rgb(0, 0, 0); /* Ваш колір фону */
+    background-color: lightgray; /* Ваш колір фону */
 }
 
-/* Контейнер для Sketchfab canvas */
+/* Контейнер для Sketchfab-вікна */
 .sketchfab-container {
-    width: 100%; /* Ширина на всю сторінку */
-    height: 1200px; /* Висота як у банера, можете змінити на своє значення */
-    z-index: -1; /* Залишаємо на задньому плані */
+    width: 100%;
+    height: 500px; /* Висота банера */
+    position: relative; /* Це важливо для позиціонування гарячих точок */
+    z-index: 1; /* Розміщуємо його на передньому плані */
 }
 
 #api-frame {
@@ -22,30 +25,30 @@ body {
     border: none;
 }
 
-/* Стилі для кнопок */
+/* Стилі для кнопок, які будуть поверх скетчфаба */
 .color-controls {
-    position: fixed; /* Закріплюємо їх на екрані */
-    top: 20px; /* Відступ зверху */
-    left: 20px; /* Відступ зліва */
-    z-index: 100; /* Переміщаємо їх на передній план */
-    pointer-events: none; /* ЦЕ КЛЮЧОВИЙ РЯДОК */
+    position: fixed; /* Прикріплюємо їх до вікна браузера */
+    top: 20px;
+    left: 20px;
+    z-index: 100; /* Це значення вище, ніж у скетчфаба */
+    pointer-events: none; /* Це дозволяє клікам миші проходити на скетчфаб */
 }
 
 .color-controls button {
-    /* Додайте стилі для кнопок, якщо хочете */
     padding: 10px;
     margin-right: 10px;
     cursor: pointer;
-    pointer-events: auto; /* Повертаємо можливість клікати на кнопки */
+    pointer-events: auto; /* А це дозволяє натискати на самі кнопки */
 }
 
 /* Стилі для наших власних гарячих точок */
 .custom-hotspot {
-    position: absolute; /* Це дуже важливо для позиціонування */
+    position: absolute; /* Це ключовий рядок для позиціонування */
     padding: 10px;
     background-color: rgba(255, 255, 255, 0.8); /* Напівпрозорий фон */
-    border: 1px solid #2537ff;
+    border: 1px solid #ccc;
     border-radius: 5px;
     cursor: pointer;
-    z-index: 1000;
+    z-index: 1000; /* Дуже високий z-index, щоб завжди бути зверху */
+    pointer-events: auto; /* Дозволяє клікати на самі гарячі точки */
 }
