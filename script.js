@@ -34,11 +34,10 @@ function setupHotspots() {
             return;
         }
 
-        const uiContainer = document.getElementById('ui-elements');
+        const hotspotContainer = document.getElementById('hotspot-container');
         
-        // Додаємо перевірку: якщо елемент не знайдено, виводимо помилку
-        if (!uiContainer) {
-            console.log('Помилка: Не знайдено елемент #ui-elements. Перевірте HTML-код.');
+        if (!hotspotContainer) {
+            console.log('Помилка: Не знайдено елемент #hotspot-container. Перевірте HTML-код.');
             return;
         }
 
@@ -54,7 +53,7 @@ function setupHotspots() {
                     // showPopup(annotation.name, annotation.content);
                 };
                 
-                uiContainer.appendChild(hotspot);
+                hotspotContainer.appendChild(hotspot);
             });
         } else {
             console.log('Анотацій не знайдено в моделі. Перевірте налаштування моделі на Sketchfab.');

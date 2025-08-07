@@ -10,6 +10,26 @@
 </head>
 <body>
 
+    <!-- Контейнер для всіх кастомних елементів (кнопок, попапів) -->
+    <div id="ui-elements">
+        <!-- Кнопки зміни кольору, які мають бути накладені поверх моделі -->
+        <div class="color-controls">
+            <button onclick="changeBackgroundColor('lightblue')">Синій</button>
+            <button onclick="changeBackgroundColor('lightgreen')">Зелений</button>
+            <button onclick="changeBackgroundColor('yellow')">Жовтий</button>
+        </div>
+
+        <!-- Контейнер для гарячих точок (які створюються через JS) -->
+        <div id="hotspot-container"></div>
+        
+        <!-- Спливаюче вікно, яке буде відображатися/приховуватися -->
+        <div id="info-popup" style="display: none;">
+            <h3 id="popup-title"></h3>
+            <p id="popup-content"></p>
+            <button onclick="hidePopup()">Закрити</button>
+        </div>
+    </div>
+
     <!-- Тут буде наш 3D-viewer від Sketchfab -->
     <div class="sketchfab-container">
         <iframe
@@ -19,23 +39,6 @@
           mozallowfullscreen="true"
           webkitallowfullscreen="true"
         ></iframe>
-    </div>
-
-    <!-- Об'єднаний контейнер для всіх UI-елементів -->
-    <div id="ui-elements">
-        <!-- Кнопки зміни кольору -->
-        <div class="color-controls">
-            <button onclick="changeBackgroundColor('lightblue')">Blue</button>
-            <button onclick="changeBackgroundColor('lightgreen')">Green</button>
-            <button onclick="changeBackgroundColor('yellow')">Yellow</button>
-        </div>
-
-        <!-- Спливаюче вікно, яке буде відображатися/приховуватися -->
-        <div id="info-popup" style="display: none;">
-            <h3 id="popup-title"></h3>
-            <p id="popup-content"></p>
-            <button onclick="hidePopup()">Закрити</button>
-        </div>
     </div>
 
     <!-- Наш власний JavaScript-код -->
