@@ -1,57 +1,69 @@
-/* Базові налаштування */
+/* Базові налаштування для скидання відступів браузера */
 body, html {
     margin: 0;
     padding: 0;
     height: 100%;
     width: 100%;
-    overflow: hidden; /* Ховаємо скролбари */
+    overflow: hidden; /* Ховаємо смуги прокрутки */
 }
 
-/* Контейнер для моделі, щоб він займав весь екран */
+/* Контейнер для моделі, розтягуємо його на весь екран */
 .sketchfab-container {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1; /* Фон */
+    z-index: 1; /* Розміщуємо на задньому плані */
 }
 
+/* Сам iframe теж розтягуємо на весь контейнер */
 #api-frame {
     width: 100%;
     height: 100%;
     border: none;
 }
 
-/* Контейнер для наших кнопок */
+/* Контейнер для наших кнопок, розміщуємо його точно над моделлю */
 #ui-elements {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none; /* Дозволяє клікам "проходити" крізь контейнер до моделі */
-    z-index: 2; /* Розміщуємо поверх моделі */
+    /* Робимо контейнер "прозорим" для кліків, щоб можна було обертати модель */
+    pointer-events: none; 
+    z-index: 2; /* Розміщуємо поверх контейнера з моделлю */
 }
 
-/* Стилі для наших власних гарячих точок */
+/* Стилі для наших кастомних кнопок-хотспотів */
 .custom-hotspot {
-    position: absolute; /* ОБОВ'ЯЗКОВО: для позиціонування через top/left */
+    /* ЦЕ НАЙВАЖЛИВІШИЙ ПРАВИЛО! Воно дозволяє позиціонувати кнопки */
+    position: absolute;
+    
+    /* Дозволяємо клікати на самі кнопки */
+    pointer-events: auto; 
+    
+    /* Візуальне оформлення */
     padding: 8px 12px;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.75);
     color: white;
-    border: 1px solid white;
+    border: 1px solid rgba(255, 255, 255, 0.8);
     border-radius: 20px;
     cursor: pointer;
-    font-family: sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 14px;
-    pointer-events: auto; /* Дозволяє клікати на самі кнопки */
-
-    /* ПОКРАЩЕННЯ: центруємо кнопку відносно точки */
+    
+    /* Центруємо кнопку відносно точки, до якої вона прив'язана */
     transform: translate(-50%, -50%);
-    transition: transform 0.2s ease; /* Плавний ефект при наведенні */
+    
+    /* Плавність анімацій */
+    transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
 }
 
+/* Ефект при наведенні миші */
 .custom-hotspot:hover {
-    transform: translate(-50%, -50%) scale(1.1); /* Трохи збільшуємо при наведенні */
+    transform: translate(-50%, -50%) scale(1.1);
+    background-color: rgba(255, 255, 255, 1);
+    color: black;
 }

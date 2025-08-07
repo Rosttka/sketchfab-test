@@ -3,38 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sketchfab Interactive</title>
+    <title>Sketchfab Interactive Demo</title>
+    
     <link rel="stylesheet" href="style.css">
-    <!-- Скрипт Sketchfab API -->
-    <script type="text/javascript" src="https://static.sketchfab.com/api/sketchfab-viewer-1.0.0.js"></script>
 </head>
 <body>
 
-    <!-- Контейнер для всіх кастомних елементів (кнопок, попапів) -->
-    <div id="ui-elements">
-        <!-- Контейнер для гарячих точок (які створюються через JS) -->
-        <div id="hotspot-container"></div>
-        
-        <!-- Спливаюче вікно, яке буде відображатися/приховуватися -->
-        <div id="info-popup" style="display: none;">
-            <h3 id="popup-title"></h3>
-            <p id="popup-content"></p>
-            <button onclick="hidePopup()">Закрити</button>
-        </div>
-    </div>
-
-    <!-- Тут буде наш 3D-viewer від Sketchfab -->
     <div class="sketchfab-container">
-        <iframe
-          src="https://sketchfab.com/models/40fa706855ed407fbbd0123951988cc0/embed?api_version=1&transparent=1&autostart=1&ui_annotations=0"
-          id="api-frame"
-          allowfullscreen
-          mozallowfullscreen="true"
-          webkitallowfullscreen="true"
-        ></iframe>
+        <iframe 
+            src="https://sketchfab.com/models/40fa706855ed407fbbd0123951988cc0/embed?autostart=1&ui_annotations=0&ui_infos=0&ui_controls=1" 
+            id="api-frame" 
+            allow="fullscreen; autoplay; xr-spatial-tracking" 
+            allowfullscreen 
+            mozallowfullscreen="true" 
+            webkitallowfullscreen="true">
+        </iframe>
     </div>
 
-    <!-- Наш власний JavaScript-код -->
+    <div id="ui-elements"></div>
+
+    <script type="text/javascript" src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
     <script src="script.js"></script>
 
 </body>
