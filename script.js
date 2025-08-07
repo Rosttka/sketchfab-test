@@ -35,19 +35,30 @@ function setupHotspots() {
         }
 
         const uiContainer = document.getElementById('ui-elements');
-        annotations.forEach(annotation => {
-            const hotspot = document.createElement('button');
-            hotspot.className = 'custom-hotspot';
-            hotspot.innerText = annotation.name;
-            hotspot.onclick = function() {
-                api.gotoAnnotation(annotation.index);
-                // Тут можна додати логіку для спливаючого вікна
-                // showPopup(annotation.name, annotation.content);
-            };
+        
+        // Додаємо перевірку: якщо елемент не знайдено, виводимо помилку
+        if (!uiContainer) {
+            console.log('Помилка: Не знайдено елемент #ui-elements. Перевірте HTML-код.');
+            return;
+        }
 
-            // Додаємо кнопку до контейнера
-            uiContainer.appendChild(hotspot);
-        });
+        if (annotations && annotations.length > 0) {
+            console.log('Знайдено анотації:', annotations);
+            annotations.forEach(annotation => {
+                const hotspot = document.createElement('button');
+                hotspot.className = 'custom-hotspot';
+                hotspot.innerText = annotation.name;
+                hotspot.onclick = function() {
+                    api.gotoAnnotation(annotation.index);
+                    // Тут можна додати логіку для спливаючого вікна
+                    // showPopup(annotation.name, annotation.content);
+                };
+                
+                uiContainer.appendChild(hotspot);
+            });
+        } else {
+            console.log('Анотацій не знайдено в моделі. Перевірте налаштування моделі на Sketchfab.');
+        }
     });
 }
 
