@@ -57,6 +57,7 @@ function createCustomHotspots() {
 }
 
 function updateHotspotsPosition() {
+    console.log('Виклик updateHotspotsPosition');
     annotations.forEach((annotation, i) => {
         if (!annotation.position) {
             console.warn('⚠️ Анотація не має position:', annotation);
