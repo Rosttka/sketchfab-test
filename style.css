@@ -1,76 +1,57 @@
-/* Базові налаштування для всієї сторінки */
-html, body {
+/* Базові налаштування */
+body, html {
     margin: 0;
     padding: 0;
-    width: 100%;
     height: 100%;
-    overflow: hidden; /* Прибираємо прокрутку, бо всі елементи позиціоновані */
-}
-
-/* Колір фону сторінки */
-body {
-    background-color: transparent; /* Задаємо прозоре тло */
-}
-
-/* Контейнер для всіх кастомних елементів (кнопок, попапів) */
-#ui-elements {
-    position: fixed;
-    top: 0;
-    left: 0;
     width: 100%;
-    height: 100%;
-    z-index: 1000; /* Дуже високий індекс, щоб завжди бути поверх моделі */
-    pointer-events: none; /* Пропускаємо кліки миші через цей шар */
+    overflow: hidden; /* Ховаємо скролбари */
 }
 
-/* Стилі для кастомних гарячих точок */
-#hotspot-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
-
-.custom-hotspot {
-    position: absolute;
-    padding: 10px;
-    background-color: rgba(255, 255, 255, 0.8);
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    cursor: pointer;
-    pointer-events: auto;
-}
-
-/* Стилі для спливаючого вікна */
-#info-popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    padding: 20px;
-    background-color: rgba(255, 255, 255, 0.9);
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    max-width: 300px;
-    pointer-events: auto;
-    text-align: center;
-}
-
-/* Контейнер для 3D-вікна Sketchfab */
+/* Контейнер для моделі, щоб він займав весь екран */
 .sketchfab-container {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1; /* Розміщуємо його на задньому плані відносно UI-елементів */
-    background-color: transparent; /* Це ключове виправлення */
+    z-index: 1; /* Фон */
 }
 
 #api-frame {
     width: 100%;
     height: 100%;
     border: none;
+}
+
+/* Контейнер для наших кнопок */
+#ui-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Дозволяє клікам "проходити" крізь контейнер до моделі */
+    z-index: 2; /* Розміщуємо поверх моделі */
+}
+
+/* Стилі для наших власних гарячих точок */
+.custom-hotspot {
+    position: absolute; /* ОБОВ'ЯЗКОВО: для позиціонування через top/left */
+    padding: 8px 12px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: 1px solid white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: sans-serif;
+    font-size: 14px;
+    pointer-events: auto; /* Дозволяє клікати на самі кнопки */
+
+    /* ПОКРАЩЕННЯ: центруємо кнопку відносно точки */
+    transform: translate(-50%, -50%);
+    transition: transform 0.2s ease; /* Плавний ефект при наведенні */
+}
+
+.custom-hotspot:hover {
+    transform: translate(-50%, -50%) scale(1.1); /* Трохи збільшуємо при наведенні */
 }
