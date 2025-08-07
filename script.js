@@ -67,6 +67,7 @@ function updateHotspotsPosition() {
             ? { x: annotation.position[0], y: annotation.position[1], z: annotation.position[2] }
             : annotation.position;
 
+        console.log('Позиція анотації:', pos);
         api.getWorldToScreenCoordinates(pos, function (err, screenCoordinates) {
             if (err || !screenCoordinates || typeof screenCoordinates.x !== 'number' || typeof screenCoordinates.y !== 'number') {
                 console.error(`❌ Помилка getWorldToScreenCoordinates для анотації #${i}:`, err || screenCoordinates);
