@@ -63,15 +63,11 @@ function updateHotspotsPosition() {
             return;
         }
 
-        console.log(`📌 Анотація #${annotation.index} — позиція:`, annotation.position);
-
         api.getWorldToScreenCoordinates(annotation.position, function (err, screenCoordinates) {
-            if (err) {
-                console.error(`❌ Помилка getWorldToScreenCoordinates для анотації #${annotation.index}:`, err);
+            if (err || !screenCoordinates || typeof screenCoordinates.x !== 'number' || typeof screenCoordinates.y !== 'number') {
+                console.error(`❌ Помилка getWorldToScreenCoordinates для анотації #${annotation.index}:`, err || screenCoordinates);
                 return;
             }
-
-            console.log(`📐 2D координати для анотації #${annotation.index}:`, screenCoordinates);
 
             const hotspotElement = document.getElementById(`hotspot-${annotation.index}`);
             if (hotspotElement) {
@@ -79,8 +75,9 @@ function updateHotspotsPosition() {
                 hotspotElement.style.top = `${screenCoordinates.y}px`;
 
                 const isOutside =
-                    screenCoordinates.viewport.x < 0 || screenCoordinates.viewport.x > 1 ||
-                    screenCoordinates.viewport.y < 0 || screenCoordinates.viewport.y > 1;
+                    screenCoordinates.viewport &&
+                    (screenCoordinates.viewport.x < 0 || screenCoordinates.viewport.x > 1 ||
+                     screenCoordinates.viewport.y < 0 || screenCoordinates.viewport.y > 1);
 
                 hotspotElement.style.display = isOutside ? 'none' : 'block';
             } else {
