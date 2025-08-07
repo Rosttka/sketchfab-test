@@ -4,7 +4,7 @@ const uiContainer = document.getElementById('ui-elements');
 
 function initializeSketchfabAPI() {
     const iframe = document.getElementById('api-frame');
-    const client = new Sketchfab('1.12.1', iframe);
+    const client = new Sketchfab(iframe);
 
     client.init('40fa706855ed407fbbd0123951988cc0', {
         success: function (fetchedApi) {
