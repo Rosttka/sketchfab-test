@@ -12,69 +12,59 @@ function initializeSketchfabAPI() {
             api.start();
 
             api.addEventListener('viewerready', function() {
+                console.log("Sketchfab готовий");
+
                 api.getAnnotationList(function(err, fetchedAnnotations) {
                     if (err) {
-                        console.error('Помилка отримання анотацій:', err);
+                        console.error("Не вдалося отримати анотації:", err);
                         return;
                     }
 
+                    console.log("Анотації:", fetchedAnnotations);
                     annotations = fetchedAnnotations;
-                    console.log("Отримані анотації:", annotations); // ← додано
-                    createCustomHotspots();
-
-                    // Перемикаємо на viewerprocess (надійніше для початку)
-                    api.addEventListener('viewerprocess', updateHotspotsPosition);
+                    createHotspots();
+                    api.addEventListener('viewerprocess', updateHotspotPositions);
                 });
             });
         },
         error: function() {
             console.error('Помилка ініціалізації Sketchfab');
-        },
-        transparent: 1
+        }
     });
 }
 
-function createCustomHotspots() {
+function createHotspots() {
     annotations.forEach(annotation => {
-        const hotspot = document.createElement('button');
+        const hotspot = document.createElement('div');
         hotspot.className = 'custom-hotspot';
         hotspot.id = `hotspot-${annotation.index}`;
-        hotspot.innerText = annotation.name;
-
-        hotspot.onclick = function() {
-            api.gotoAnnotation(annotation.index);
-        };
-
+        hotspot.textContent = annotation.name;
         uiContainer.appendChild(hotspot);
     });
 }
 
-function updateHotspotsPosition() {
+function updateHotspotPositions() {
     annotations.forEach(annotation => {
-        const hotspotElement = document.getElementById(`hotspot-${annotation.index}`);
-        if (!hotspotElement) return;
+        const el = document.getElementById(`hotspot-${annotation.index}`);
+        if (!el) return;
 
-        // ←←← ← ТУТ ГОЛОВНЕ: пробуємо worldPosition
-        const position = annotation.worldPosition || annotation.position || annotation.eye;
-
-        if (!position) {
-            console.warn(`Annotation ${annotation.index} не має координат`);
+        // Переважно у анотацій є viewpointPosition або position
+        const pos = annotation.position || annotation.viewpointPosition || annotation.eye;
+        if (!pos) {
+            console.warn(`Немає позиції для анотації ${annotation.index}`);
             return;
         }
 
-        api.getWorldToScreenCoordinates(position, function(err, screenCoordinates) {
-            if (err) {
-                console.error('Помилка координат:', err);
+        api.getWorldToScreenCoordinates(pos, function(err, screenCoordinates) {
+            if (err || !screenCoordinates) {
+                console.error('Координати не отримано:', err);
                 return;
             }
 
-            hotspotElement.style.left = `${screenCoordinates.x}px`;
-            hotspotElement.style.top = `${screenCoordinates.y}px`;
-
-            const outOfView = screenCoordinates.viewport.x < 0 || screenCoordinates.viewport.x > 1 ||
-                              screenCoordinates.viewport.y < 0 || screenCoordinates.viewport.y > 1;
-
-            hotspotElement.style.display = outOfView ? 'none' : 'block';
+            el.style.position = 'absolute';
+            el.style.left = `${screenCoordinates.x}px`;
+            el.style.top = `${screenCoordinates.y}px`;
+            el.style.display = 'block';
         });
     });
 }
