@@ -76,10 +76,13 @@ function updateHotspotsPosition() {
     // Додаємо лог координат
     console.log(`hotspot-${i}:`, screenCoordinates.x, screenCoordinates.y);
 
+    const iframeRect = document.getElementById('api-frame').getBoundingClientRect();
     const hotspotElement = document.getElementById(`hotspot-${i}`);
-    if (hotspotElement) {
-        hotspotElement.style.left = `${screenCoordinates.x}px`;
-        hotspotElement.style.top = `${screenCoordinates.y}px`;
+        if (hotspotElement) {
+            hotspotElement.style.left = `${screenCoordinates.x + iframeRect.left}px`;
+            hotspotElement.style.top = `${screenCoordinates.y + iframeRect.top}px`;
+    // ...далі по коду...
+}
 
                 const isOutside =
                     screenCoordinates.viewport &&
