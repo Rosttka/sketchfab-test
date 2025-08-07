@@ -1,9 +1,7 @@
-// Глобальні змінні
 let api;
 let annotations = [];
 const uiContainer = document.getElementById('ui-elements');
 
-// Ініціалізація Sketchfab Viewer API
 function initializeSketchfabAPI() {
     const iframe = document.getElementById('api-frame');
     const client = new Sketchfab('1.12.1', iframe);
@@ -14,7 +12,6 @@ function initializeSketchfabAPI() {
             api.start();
 
             api.addEventListener('viewerready', function() {
-                // Отримуємо список анотацій
                 api.getAnnotationList(function(err, fetchedAnnotations) {
                     if (err) {
                         console.error('Помилка отримання анотацій:', err);
@@ -22,21 +19,21 @@ function initializeSketchfabAPI() {
                     }
 
                     annotations = fetchedAnnotations;
+                    console.log("Отримані анотації:", annotations); // ← додано
                     createCustomHotspots();
-                });
 
-                // Оновлюємо позиції на кожному кадрі
-                api.addEventListener('frameUpdate', updateHotspotsPosition);
+                    // Перемикаємо на viewerprocess (надійніше для початку)
+                    api.addEventListener('viewerprocess', updateHotspotsPosition);
+                });
             });
         },
         error: function() {
-            console.error('Помилка API Sketchfab');
+            console.error('Помилка ініціалізації Sketchfab');
         },
-        transparent: 1 // залишено про всяк випадок
+        transparent: 1
     });
 }
 
-// Створення кастомних хотспотів
 function createCustomHotspots() {
     annotations.forEach(annotation => {
         const hotspot = document.createElement('button');
@@ -52,33 +49,34 @@ function createCustomHotspots() {
     });
 }
 
-// Оновлення позицій кастомних хотспотів на екрані
 function updateHotspotsPosition() {
     annotations.forEach(annotation => {
         const hotspotElement = document.getElementById(`hotspot-${annotation.index}`);
         if (!hotspotElement) return;
 
-        // Важливо: використовуємо annotation.position, а не eye
-        api.getWorldToScreenCoordinates(annotation.position, function(err, screenCoordinates) {
+        // ←←← ← ТУТ ГОЛОВНЕ: пробуємо worldPosition
+        const position = annotation.worldPosition || annotation.position || annotation.eye;
+
+        if (!position) {
+            console.warn(`Annotation ${annotation.index} не має координат`);
+            return;
+        }
+
+        api.getWorldToScreenCoordinates(position, function(err, screenCoordinates) {
             if (err) {
-                console.error('Координати не отримано:', err);
+                console.error('Помилка координат:', err);
                 return;
             }
 
-            // Позиціонуємо елемент
             hotspotElement.style.left = `${screenCoordinates.x}px`;
             hotspotElement.style.top = `${screenCoordinates.y}px`;
 
-            // Ховаємо, якщо за межами екрану
-            if (screenCoordinates.viewport.x < 0 || screenCoordinates.viewport.x > 1 ||
-                screenCoordinates.viewport.y < 0 || screenCoordinates.viewport.y > 1) {
-                hotspotElement.style.display = 'none';
-            } else {
-                hotspotElement.style.display = 'block';
-            }
+            const outOfView = screenCoordinates.viewport.x < 0 || screenCoordinates.viewport.x > 1 ||
+                              screenCoordinates.viewport.y < 0 || screenCoordinates.viewport.y > 1;
+
+            hotspotElement.style.display = outOfView ? 'none' : 'block';
         });
     });
 }
 
-// Старт
 window.addEventListener('DOMContentLoaded', initializeSketchfabAPI);
