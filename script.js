@@ -86,15 +86,18 @@ function updateHotspotsPosition() {
             : annotation.position;
 
         api.getWorldToScreenCoordinates(pos, function (err, screenCoordinates) {
-            if (err || !screenCoordinates || typeof screenCoordinates.x !== 'number' || typeof screenCoordinates.y !== 'number') {
-                console.error(`❌ Помилка getWorldToScreenCoordinates для анотації #${i}:`, err || screenCoordinates);
-                return;
-            }
+    if (err || !screenCoordinates || typeof screenCoordinates.x !== 'number' || typeof screenCoordinates.y !== 'number') {
+        console.error(`❌ Помилка getWorldToScreenCoordinates для анотації #${i}:`, err || screenCoordinates);
+        return;
+    }
 
-            const hotspotElement = document.getElementById(`hotspot-${i}`);
-            if (hotspotElement) {
-                hotspotElement.style.left = `${screenCoordinates.x}px`;
-                hotspotElement.style.top = `${screenCoordinates.y}px`;
+    // Додаємо лог координат
+    console.log(`hotspot-${i}:`, screenCoordinates.x, screenCoordinates.y);
+
+    const hotspotElement = document.getElementById(`hotspot-${i}`);
+    if (hotspotElement) {
+        hotspotElement.style.left = `${screenCoordinates.x}px`;
+        hotspotElement.style.top = `${screenCoordinates.y}px`;
 
                 const isOutside =
                     screenCoordinates.viewport &&
