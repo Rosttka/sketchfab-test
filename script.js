@@ -1,8 +1,3 @@
-// Ця функція буде запускатися нашими кнопками для зміни кольору
-function changeBackgroundColor(color) {
-    document.body.style.backgroundColor = color;
-}
-
 // Глобальна змінна для API Sketchfab
 let api;
 
@@ -49,8 +44,8 @@ function setupHotspots() {
                 hotspot.innerText = annotation.name;
                 hotspot.onclick = function() {
                     api.gotoAnnotation(annotation.index);
-                    // Тут можна додати логіку для спливаючого вікна
-                    // showPopup(annotation.name, annotation.content);
+                    // Тепер ми можемо показати попап
+                    showPopup(annotation.name, annotation.content);
                 };
                 
                 hotspotContainer.appendChild(hotspot);
@@ -73,9 +68,9 @@ function showPopup(title, content) {
 }
 
 function hidePopup() {
-    const popup = document.getElementById('info-popup');
-    popup.style.display = 'none';
-}
+            const popup = document.getElementById('info-popup');
+            popup.style.display = 'none';
+        }
 
-// Викликаємо функцію ініціалізації, коли сторінка завантажується
-window.addEventListener('DOMContentLoaded', initializeSketchfabAPI);
+        // Викликаємо функцію ініціалізації, коли сторінка завантажується
+        window.addEventListener('DOMContentLoaded', initializeSketchfabAPI);

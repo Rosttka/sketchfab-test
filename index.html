@@ -11,14 +11,8 @@
 <body>
 
     <!-- Контейнер для всіх кастомних елементів (кнопок, попапів) -->
+    <!-- Цей контейнер має бути першим у тілі сторінки, щоб бути поверх інших елементів -->
     <div id="ui-elements">
-        <!-- Кнопки зміни кольору, які мають бути накладені поверх моделі -->
-        <div class="color-controls">
-            <button onclick="changeBackgroundColor('lightblue')">Blue</button>
-            <button onclick="changeBackgroundColor('lightgreen')">Green</button>
-            <button onclick="changeBackgroundColor('yellow')">Yellow</button>
-        </div>
-
         <!-- Контейнер для гарячих точок (які створюються через JS) -->
         <div id="hotspot-container"></div>
         
@@ -33,7 +27,7 @@
     <!-- Тут буде наш 3D-viewer від Sketchfab -->
     <div class="sketchfab-container">
         <iframe
-          src="https://sketchfab.com/models/40fa706855ed407fbbd0123951988cc0/embed?api_version=1&transparent=1&autostart=1"
+          src="https://sketchfab.com/models/40fa706855ed407fbbd0123951988cc0/embed?api_version=1&transparent=1&autostart=1&ui_annotations=0"
           id="api-frame"
           allowfullscreen
           mozallowfullscreen="true"
