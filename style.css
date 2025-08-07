@@ -3,7 +3,7 @@ html, body {
     margin: 0;
     padding: 0;
     width: 100%;
-    height: 100%;
+    height: 100%; /* Це важливо для коректного позиціонування */
     overflow: hidden; /* Прибираємо прокрутку, бо всі елементи позиціоновані */
 }
 
@@ -67,6 +67,7 @@ body {
     width: 100%;
     height: 100%;
     z-index: 1; /* Розміщуємо його на задньому плані відносно UI-елементів */
+    background-color: transparent; /* Це ключове виправлення */
 }
 
 #api-frame {
