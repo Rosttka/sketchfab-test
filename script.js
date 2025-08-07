@@ -1,42 +1,43 @@
-// Глобальні змінні
 let api;
 let annotations = [];
 const uiContainer = document.getElementById('ui-elements');
 
-// Ініціалізація Sketchfab API
 function initializeSketchfabAPI() {
     const iframe = document.getElementById('api-frame');
     const client = new Sketchfab('1.12.1', iframe);
 
     client.init('40fa706855ed407fbbd0123951988cc0', {
-        success: function(fetchedApi) {
+        success: function (fetchedApi) {
             api = fetchedApi;
             api.start();
 
-            api.addEventListener('viewerready', function() {
-                console.log('Sketchfab готовий');
+            api.addEventListener('viewerready', function () {
+                console.log('✅ Sketchfab готовий');
 
-                // Отримуємо анотації
-                api.getAnnotationList(function(err, fetchedAnnotations) {
+                api.getAnnotationList(function (err, fetchedAnnotations) {
                     if (err) {
-                        console.log('Помилка отримання анотацій:', err);
+                        console.error('❌ Помилка отримання анотацій:', err);
                         return;
                     }
+
                     annotations = fetchedAnnotations;
+                    console.log('✅ Отримано анотації:', annotations);
                     createCustomHotspots();
                 });
 
-                // Постійно оновлюємо позицію кастомних точок
-                api.addEventListener('viewerprocess', updateHotspotsPosition);
+                // Додай лог на кожне оновлення
+                api.addEventListener('viewerprocess', () => {
+                    console.log('🔄 Оновлення позицій хотспотів...');
+                    updateHotspotsPosition();
+                });
             });
         },
-        error: function() {
-            console.log('Помилка API Sketchfab');
+        error: function () {
+            console.error('❌ Помилка ініціалізації API Sketchfab');
         }
     });
 }
 
-// Створення кастомних хотспотів
 function createCustomHotspots() {
     annotations.forEach(annotation => {
         const hotspot = document.createElement('button');
@@ -44,22 +45,33 @@ function createCustomHotspots() {
         hotspot.id = `hotspot-${annotation.index}`;
         hotspot.innerText = annotation.name;
 
-        hotspot.onclick = function() {
+        hotspot.onclick = function () {
+            console.log(`👉 Перехід до анотації #${annotation.index}`);
             api.gotoAnnotation(annotation.index);
         };
 
         uiContainer.appendChild(hotspot);
     });
+
+    console.log('✅ Кастомні хотспоти створені');
 }
 
-// ОНОВЛЕНА ФУНКЦІЯ — Прив’язка до annotation.position
 function updateHotspotsPosition() {
     annotations.forEach(annotation => {
-        api.getWorldToScreenCoordinates(annotation.position, function(err, screenCoordinates) {
+        if (!annotation.position) {
+            console.warn('⚠️ Анотація не має position:', annotation);
+            return;
+        }
+
+        console.log(`📌 Анотація #${annotation.index} — позиція:`, annotation.position);
+
+        api.getWorldToScreenCoordinates(annotation.position, function (err, screenCoordinates) {
             if (err) {
-                console.log('Помилка координат:', err);
+                console.error(`❌ Помилка getWorldToScreenCoordinates для анотації #${annotation.index}:`, err);
                 return;
             }
+
+            console.log(`📐 2D координати для анотації #${annotation.index}:`, screenCoordinates);
 
             const hotspotElement = document.getElementById(`hotspot-${annotation.index}`);
             if (hotspotElement) {
@@ -71,10 +83,11 @@ function updateHotspotsPosition() {
                     screenCoordinates.viewport.y < 0 || screenCoordinates.viewport.y > 1;
 
                 hotspotElement.style.display = isOutside ? 'none' : 'block';
+            } else {
+                console.warn(`⚠️ DOM-елемент hotspot-${annotation.index} не знайдено`);
             }
         });
     });
 }
 
-// Запускаємо API після завантаження сторінки
 window.addEventListener('DOMContentLoaded', initializeSketchfabAPI);
