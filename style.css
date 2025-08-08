@@ -1,4 +1,4 @@
-/* Повноекранний контейнер */
+/* Повноекранний лейаут */
 html, body {
   margin: 0;
   padding: 0;
@@ -13,7 +13,7 @@ html, body {
   height: 100vh;
 }
 
-/* Сам в’ювер */
+/* Iframe з в’ювером */
 #api-frame {
   position: absolute;
   inset: 0;
@@ -23,26 +23,26 @@ html, body {
   z-index: 1;
 }
 
-/* Наш оверлей поверх iframe */
+/* Оверлей для наших кнопок */
 #ui-elements {
   position: absolute;
   inset: 0;
-  z-index: 9999;            /* <-- ВАЖЛИВО вище за iframe */
-  pointer-events: none;     /* пропускаємо кліки крізь пусті місця */
+  z-index: 9999;          /* поверх iframe */
+  pointer-events: none;   /* по пустим місцям кліки йдуть у в’ювер */
 }
 
-/* Хотспоти (кнопки) */
+/* Кастомні хотспоти */
 .custom-hotspot {
   position: absolute;
   left: 0; top: 0;
   transform: translate(-50%, -50%);
-  pointer-events: auto;     /* але по самій кнопці кліки ловимо */
+  pointer-events: auto;   /* кліки по самій кнопці ловимо ми */
   background: #0a66ff;
   color: #fff;
   padding: 8px 10px;
   border-radius: 10px;
-  border: none;
-  font: 600 12px/1.1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  border: 0;
+  font: 600 12px/1.1 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   white-space: nowrap;
   box-shadow: 0 2px 6px rgba(0,0,0,.25);
   cursor: pointer;

@@ -2,6 +2,8 @@ let api;
 let annotations = [];
 const uiContainer = document.getElementById('ui-elements');
 
+window.addEventListener('DOMContentLoaded', initializeSketchfabAPI);
+
 function initializeSketchfabAPI() {
   const iframe = document.getElementById('api-frame');
   const client = new Sketchfab(iframe);
@@ -10,7 +12,6 @@ function initializeSketchfabAPI() {
     success: (fetchedApi) => {
       api = fetchedApi;
       api.start();
-
       api.addEventListener('viewerready', onViewerReady);
     },
     error: () => console.error('❌ Помилка ініціалізації Sketchfab API'),
@@ -24,22 +25,18 @@ function onViewerReady() {
     if (err) return console.error('❌ Не дістав список анотацій:', err);
     annotations = list || [];
     createCustomHotspots();
-    updateHotspotsPosition(); // перше позиціонування
+
+    // перше позиціонування
+    updateHotspotsPosition();
   });
 
-  // Мінімальна кількість подій, коли треба оновлювати позиції
+  // Мінімальний набір подій для оновлення позицій
   api.addEventListener('viewerresize', updateHotspotsPosition);
-  api.addEventListener('camerastart', startRAF);
-  api.addEventListener('camerastop', stopRAF);
-  // коли стрибаємо до анотації — теж перерахунок
-  api.addEventListener('annotationFocus', () => {
-    startRAF();
-    setTimeout(stopRAF, 400); // невеликий хвіст, поки камера доїде
-  });
+  api.addEventListener('camerastop', updateHotspotsPosition);
+  api.addEventListener('annotationFocus', () => setTimeout(updateHotspotsPosition, 200));
 }
 
 function createCustomHotspots() {
-  // прибираємо старі (на випадок перезавантажень)
   uiContainer.innerHTML = '';
 
   annotations.forEach((a, i) => {
@@ -54,62 +51,36 @@ function createCustomHotspots() {
   console.log('✅ Кастомні хотспоти створені');
 }
 
-let rafId = null;
-function startRAF() {
-  if (rafId) return;
-  const tick = () => {
-    updateHotspotsPosition();
-    rafId = requestAnimationFrame(tick);
-  };
-  rafId = requestAnimationFrame(tick);
-}
-
-function stopRAF() {
-  if (!rafId) return;
-  cancelAnimationFrame(rafId);
-  rafId = null;
-  updateHotspotsPosition();
-}
-
+/**
+ * Діагностична версія:
+ * - НЕ ховаємо кнопки автоматично
+ * - додаємо зсув iframe (на випадок, якщо він не з (0,0))
+ * - лише розставляємо координати
+ */
 function updateHotspotsPosition() {
-  // Для КОЖНОЇ анотації беремо worldPosition через getAnnotation
+  const iframe = document.getElementById('api-frame');
+  const rect = iframe.getBoundingClientRect();
+
   annotations.forEach((_, i) => {
     api.getAnnotation(i, (err, a) => {
       const el = document.getElementById(`hotspot-${i}`);
-      if (!el) return;
-
-      if (err || !a) {
-        el.style.display = 'none';
-        return;
-      }
+      if (!el || err || !a) return;
 
       const wp = a.worldPosition || a.position;
-      if (!wp || typeof wp.x !== 'number') {
-        el.style.display = 'none';
-        return;
-      }
+      if (!wp || typeof wp.x !== 'number') return;
 
-      const world = [wp.x, wp.y, wp.z];
-      api.getWorldToScreenCoordinates(world, (e2, sc) => {
-        if (e2 || !sc || typeof sc.x !== 'number' || typeof sc.y !== 'number') {
-          el.style.display = 'none';
-          return;
-        }
+      api.getWorldToScreenCoordinates([wp.x, wp.y, wp.z], (e2, sc) => {
+        if (e2 || !sc || typeof sc.x !== 'number' || typeof sc.y !== 'number') return;
 
-        // Повертаються ПІКСЕЛІ в межах вікна в’ювера (без DPR-танців)
-        el.style.left = `${sc.x}px`;
-        el.style.top  = `${sc.y}px`;
+        // Координати віддаються в ПІКСЕЛЯХ усередині viewer-а
+        // Додаємо зсув iframe на сторінці (про всяк випадок)
+        const x = rect.left + sc.x;
+        const y = rect.top  + sc.y;
 
-        // Ховаємо, якщо за межами viewport (коли доступно)
-        if (sc.viewport) {
-          const out = sc.viewport.x < 0 || sc.viewport.x > 1 || sc.viewport.y < 0 || sc.viewport.y > 1;
-          el.style.display = out ? 'none' : 'block';
-        } else {
-          el.style.display = 'block';
-        }
+        el.style.left = `${x}px`;
+        el.style.top  = `${y}px`;
+        el.style.display = 'block';
       });
     });
   });
 }
-
-window.addEventListener('DOMContentLoaded', initializeSketchfabAPI);
