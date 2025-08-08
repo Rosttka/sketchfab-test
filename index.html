@@ -1,27 +1,24 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sketchfab Interactive Demo</title>
-  <link rel="stylesheet" href="style.css?v=10" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="sketchfab-container">
+  <div id="api-container">
     <iframe
       id="api-frame"
-      src="https://sketchfab.com/models/40fa706855ed407fbbd0123951988cc0/embed?autostart=1&ui_annotations=0&ui_infos=0&ui_controls=1"
-      allow="fullscreen; autoplay; xr-spatial-tracking"
+      src=""
+      allow="autoplay; fullscreen; xr-spatial-tracking"
       allowfullscreen
       mozallowfullscreen="true"
       webkitallowfullscreen="true">
     </iframe>
-
-    <!-- Наш оверлей для кнопок -->
-    <div id="ui-elements"></div>
+    <div id="hotspot-container"></div>
   </div>
 
   <script src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
-  <script src="script.js?v=10"></script>
+  <script src="script.js"></script>
 </body>
 </html>

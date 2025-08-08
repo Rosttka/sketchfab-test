@@ -1,52 +1,36 @@
 html, body {
   margin: 0;
   padding: 0;
-  width: 100%;
   height: 100%;
-  overflow: hidden;
-  background: #121212;
+  background-color: #000;
 }
 
-.sketchfab-container {
+#api-container {
   position: relative;
-  width: 100vw;
-  height: 100vh;
-}
-
-/* Viewer */
-#api-frame {
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
-  border: 0;
-  z-index: 1;
 }
 
-/* Оверлей поверх iframe */
-#ui-elements {
+#api-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+#hotspot-container {
   position: absolute;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
+  top: 0;
+  left: 0;
+  pointer-events: none; /* щоб не заважало нативним хотспотам */
 }
 
-/* Кнопки-хотспоти (DEBUG: кольори підкажуть стан) */
 .custom-hotspot {
   position: absolute;
-  left: 50%; top: 50%;         /* старт до першого апдейту */
-  transform: translate(-50%, -50%);
+  background-color: #1f6fff;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 14px;
   pointer-events: auto;
-  color: #fff;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 0;
-  font: 600 12px/1.1 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(0,0,0,.25);
-  cursor: pointer;
-  background: #6c757d;         /* сірий — ще не проєктовано */
 }
-.custom-hotspot[data-bad="1"] { background: #ff3b30; }  /* sc немає/помилка */
-.custom-hotspot[data-bad="0"] { background: #0a66ff; } /* sc OK */
-.custom-hotspot:hover { transform: translate(-50%, -50%) scale(1.06); }
