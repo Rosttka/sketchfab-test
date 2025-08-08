@@ -98,4 +98,72 @@ async function preloadWorldPositions(list) {
     for (let tries = 0; tries < 5 && !wp; tries++) {
       try {
         const a = await getAnnotationAsync(i);
-        wp =
+        wp = toVec3(a?.worldPosition) || toVec3(a?.position);
+      } catch (_) {}
+      if (!wp) await wait(100);
+    }
+
+    if (!wp) {
+      console.warn(`⚠️ Не вдалося отримати worldPosition для #${i} (${name})`);
+      continue;
+    }
+    result.push({ index: i, name, world: wp });
+  }
+
+  // повернемось до першої валідної
+  if (result.length) {
+    await gotoAnnotationAsync(result[0].index);
+    await wait(150);
+  }
+  return result;
+}
+
+/* ---------- UI ---------- */
+function createHotspots(items) {
+  ui.innerHTML = '';
+  items.forEach(({ index, name }) => {
+    const btn = document.createElement('button');
+    btn.className = 'custom-hotspot';
+    btn.id = `hotspot-${index}`;
+    btn.textContent = name;
+    btn.addEventListener('click', () => api.gotoAnnotation(index));
+    ui.appendChild(btn);
+  });
+  console.log('✅ Кастомні хотспоти створені');
+}
+
+/* ---------- позиціонування ---------- */
+function startRAF() {
+  if (rafId) return;
+  const tick = () => { updateHotspotsPosition(); rafId = requestAnimationFrame(tick); };
+  rafId = requestAnimationFrame(tick);
+}
+function stopRAF() {
+  if (!rafId) return;
+  cancelAnimationFrame(rafId);
+  rafId = null;
+  updateHotspotsPosition();
+}
+
+function updateHotspotsPosition() {
+  // Якщо кеш порожній — просто не чіпаємо left/top (кнопки будуть у центрі, сірі)
+  if (!cached.length) return;
+
+  cached.forEach(({ index, world }) => {
+    const el = document.getElementById(`hotspot-${index}`);
+    if (!el) return;
+
+    api.getWorldToScreenCoordinates(world, (e, sc) => {
+      el.style.display = 'block'; // ніколи не ховаємо під час діагностики
+
+      if (e || !sc || typeof sc.x !== 'number' || typeof sc.y !== 'number') {
+        el.dataset.bad = '1'; // червона — проєкції немає
+        return;
+      }
+
+      el.dataset.bad = '0';   // синя — проєкція ок
+      el.style.left = `${sc.x}px`;
+      el.style.top  = `${sc.y}px`;
+    });
+  });
+}
