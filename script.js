@@ -2,7 +2,6 @@ let api;
 let annotations = [];
 let cached = []; // [{ index, name, world:[x,y,z] }]
 const ui = document.getElementById('ui-elements');
-const cover = document.getElementById('preload-cover');
 let rafId = null;
 
 window.addEventListener('DOMContentLoaded', init);
@@ -24,24 +23,21 @@ function init() {
 async function onReady() {
   console.log('✅ Sketchfab готовий');
 
+  // 1) тягнемо список
   annotations = await getAnnotationListAsync().catch(() => []);
   console.log(`ℹ️ Анотацій: ${annotations.length}`);
 
-  // 1) кешуємо worldPosition для кожної анотації під cover’ом
-  cover.style.display = 'grid';
-  cached = await preloadWorldPositions(annotations);
-  console.log(`✅ Кешовано: ${cached.length}/${annotations.length}`);
+  // 2) одразу створюємо кнопки (щоб точно бачили щось на екрані)
+  createHotspots(annotations.map((a, i) => ({ index: i, name: a?.name || `Hotspot ${i+1}` })));
 
-  // 2) рендеримо кнопки
-  createHotspots(cached);
+  // 3) паралельно намагаємось закешувати worldPosition через «тиху» пробіжку
+  preloadWorldPositions(annotations).then(res => {
+    cached = res;
+    console.log(`✅ Кешовано: ${cached.length}/${annotations.length}`);
+    updateHotspotsPosition();     // перше нормальне позиціонування
+  });
 
-  // 3) первинне позиціонування
-  updateHotspotsPosition();
-
-  // 4) прибираємо cover (користувач не бачив пробіжку)
-  cover.style.display = 'none';
-
-  // 5) оновлення позицій
+  // 4) прості оновлення
   api.addEventListener('viewerresize', updateHotspotsPosition);
   api.addEventListener('camerastart', startRAF);
   api.addEventListener('camerastop', stopRAF);
@@ -51,11 +47,55 @@ async function onReady() {
   });
 }
 
-/* ---------- Promise helpers ---------- */
+/* ---------- helpers ---------- */
 const wait = (ms) => new Promise(r => setTimeout(r, ms));
 const getAnnotationListAsync = () =>
   new Promise((res, rej) => api.getAnnotationList((e, list) => e ? rej(e) : res(list || [])));
 const getAnnotationAsync = (i) =>
   new Promise((res, rej) => api.getAnnotation(i, (e, a) => e ? rej(e) : res(a)));
 const gotoAnnotationAsync = (i) =>
-  new Promise((res) => { t
+  new Promise((res) => { try { api.gotoAnnotation(i); } catch(_) {} res(); });
+
+function waitForAnnotationFocus(index, timeout = 2000) {
+  return new Promise((resolve) => {
+    let done = false;
+    const t = setTimeout(() => { if (!done) { cleanup(); resolve(); } }, timeout);
+
+    function handler(e) {
+      const focused = typeof e === 'number' ? e : (e && typeof e.index === 'number' ? e.index : null);
+      if (focused === index || focused === null) { cleanup(); resolve(); }
+    }
+    function cleanup() {
+      if (done) return;
+      done = true;
+      clearTimeout(t);
+      try { api.removeEventListener('annotationFocus', handler); } catch(_) {}
+    }
+    api.addEventListener('annotationFocus', handler);
+  });
+}
+
+function toVec3(pos) {
+  if (!pos) return null;
+  if (Array.isArray(pos) && pos.length >= 3) return [pos[0], pos[1], pos[2]];
+  if (typeof pos.x === 'number' && typeof pos.y === 'number' && typeof pos.z === 'number')
+    return [pos.x, pos.y, pos.z];
+  return null;
+}
+
+/* ---------- preload world positions (не блокує UI) ---------- */
+async function preloadWorldPositions(list) {
+  const result = [];
+
+  for (let i = 0; i < list.length; i++) {
+    const name = list[i]?.name || `Hotspot ${i + 1}`;
+
+    await gotoAnnotationAsync(i);
+    await waitForAnnotationFocus(i);
+    await wait(120);
+
+    let wp = null;
+    for (let tries = 0; tries < 5 && !wp; tries++) {
+      try {
+        const a = await getAnnotationAsync(i);
+        wp =
