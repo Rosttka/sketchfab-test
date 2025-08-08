@@ -23,19 +23,20 @@ function init() {
 async function onReady() {
   console.log('✅ Sketchfab готовий');
 
-  annotations = await getAnnotationListAsync();
+  annotations = await getAnnotationListAsync().catch(e => (console.error(e), []));
   console.log(`ℹ️ Знайдено анотацій: ${annotations.length}`);
 
-  // 1) Пробігаємось по всіх анотаціях і кешуємо worldPosition
+  // 1) кешуємо worldPosition, пробігаючись по всіх анотаціях
   cached = await preloadWorldPositions(annotations);
+  console.log(`✅ Кешовано позицій: ${cached.length}/${annotations.length}`);
 
-  // 2) Малюємо хотспоти
+  // 2) малюємо кнопки
   createHotspots(cached);
 
-  // 3) Початкове позиціонування
+  // 3) первинне позиціонування
   updateHotspotsPosition();
 
-  // 4) Події для оновлення позицій
+  // 4) оновлення при подіях
   api.addEventListener('viewerresize', updateHotspotsPosition);
   api.addEventListener('camerastart', startRAF);
   api.addEventListener('camerastop', stopRAF);
@@ -45,43 +46,22 @@ async function onReady() {
   });
 }
 
-/* ---------- API PROMISIFIED HELPERS ---------- */
+/* ---------- Promises helpers ---------- */
+const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
-function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+const getAnnotationListAsync = () =>
+  new Promise((res, rej) => api.getAnnotationList((e, list) => e ? rej(e) : res(list || [])));
 
-function getAnnotationListAsync() {
-  return new Promise((resolve, reject) => {
-    api.getAnnotationList((err, list) => err ? reject(err) : resolve(list || []));
-  });
-}
+const getAnnotationAsync = (i) =>
+  new Promise((res, rej) => api.getAnnotation(i, (e, a) => e ? rej(e) : res(a)));
 
-function getAnnotationAsync(i) {
-  return new Promise((resolve, reject) => {
-    api.getAnnotation(i, (err, a) => err ? reject(err) : resolve(a));
-  });
-}
+const gotoAnnotationAsync = (i, opts={}) =>
+  new Promise((res) => { try { api.gotoAnnotation(i, opts); } catch(_){} res(); });
 
-function gotoAnnotationAsync(i, opts = {}) {
-  return new Promise((resolve) => {
-    try {
-      api.gotoAnnotation(i, opts);
-      resolve();
-    } catch (e) {
-      resolve(); // навіть якщо не підтримує opts — ідемо далі
-    }
-  });
-}
+const worldToScreenAsync = (vec3) =>
+  new Promise((res) => api.getWorldToScreenCoordinates(vec3, (e, sc) => res(e ? null : sc)));
 
-function worldToScreenAsync(vec3) {
-  return new Promise((resolve) => {
-    api.getWorldToScreenCoordinates(vec3, (e, sc) => {
-      resolve(e ? null : sc);
-    });
-  });
-}
-
-/* ---------- UTILS ---------- */
-
+/* ---------- utils ---------- */
 function toVec3(pos) {
   if (!pos) return null;
   if (Array.isArray(pos) && pos.length >= 3) return [pos[0], pos[1], pos[2]];
@@ -90,56 +70,40 @@ function toVec3(pos) {
   return null;
 }
 
-/**
- * Пробігаємось по всіх анотаціях: переходимо до кожної, чекаємо,
- * читаємо worldPosition, зберігаємо в кеш.
- */
+/* ---------- preload ---------- */
 async function preloadWorldPositions(list) {
   const result = [];
-  const delay = 350; // мс — невелика затримка, щоб камера “доїхала”
-
-  // збережемо поточний індекс, щоб повернутись (не обов’язково)
-  let currentIndex = -1;
-
-  try {
-    // Спробуємо зчитати фокусну анотацію (якщо є)
-    // не критично, тож без зайвих викрутасів
-  } catch (e) {}
+  const delay = 350;
 
   for (let i = 0; i < list.length; i++) {
     const name = list[i]?.name || `Hotspot ${i + 1}`;
-
     await gotoAnnotationAsync(i);
     await wait(delay);
 
-    // кілька спроб дістати worldPosition
     let wp = null;
     for (let tries = 0; tries < 4 && !wp; tries++) {
       try {
         const a = await getAnnotationAsync(i);
         wp = toVec3(a?.worldPosition) || toVec3(a?.position);
-      } catch (e) {}
+      } catch (_) {}
       if (!wp) await wait(120);
     }
 
     if (!wp) {
-      console.warn(`⚠️ Не вдалося отримати worldPosition для анотації #${i} (${name})`);
+      console.warn(`⚠️ Не вдалося отримати worldPosition для #${i} (${name})`);
       continue;
     }
-
     result.push({ index: i, name, world: wp });
   }
 
-  // повернемось до першої анотації, щоб не дратувати користувача
   if (result.length) {
     await gotoAnnotationAsync(result[0].index);
     await wait(delay);
   }
-
-  console.log(`✅ Кешовано позицій: ${result.length}/${list.length}`);
   return result;
 }
 
+/* ---------- UI ---------- */
 function createHotspots(items) {
   ui.innerHTML = '';
   items.forEach(({ index, name }) => {
@@ -153,14 +117,10 @@ function createHotspots(items) {
   console.log('✅ Кастомні хотспоти створені');
 }
 
-/* ---------- POSITIONING ---------- */
-
+/* ---------- positioning ---------- */
 function startRAF() {
   if (rafId) return;
-  const tick = () => {
-    updateHotspotsPosition();
-    rafId = requestAnimationFrame(tick);
-  };
+  const tick = () => { updateHotspotsPosition(); rafId = requestAnimationFrame(tick); };
   rafId = requestAnimationFrame(tick);
 }
 
@@ -174,13 +134,9 @@ function stopRAF() {
 async function updateHotspotsPosition() {
   if (!cached.length) return;
 
-  const iframe = document.getElementById('api-frame');
-  const rect = iframe.getBoundingClientRect();
-
-  // Паралельно проектуємо всі точки
-  const projs = await Promise.all(
-    cached.map(item => worldToScreenAsync(item.world))
-  );
+  // ВАЖЛИВО: наш оверлей точно співпадає з iframe (inset:0),
+  // ТОМУ НЕ додаємо ніяких rect.left/top. Використовуємо sc.x/sc.y напряму.
+  const projs = await Promise.all(cached.map(item => worldToScreenAsync(item.world)));
 
   projs.forEach((sc, idx) => {
     const { index } = cached[idx];
@@ -188,13 +144,12 @@ async function updateHotspotsPosition() {
     if (!el) return;
 
     if (!sc || typeof sc.x !== 'number' || typeof sc.y !== 'number') {
-      el.style.display = 'none';
+      // тимчасово не ховаємо, щоб бачити, що відбувається
       return;
     }
 
-    // x/y — пікселі в межах viewer-а; додаємо зсув iframe
-    el.style.left = `${rect.left + sc.x}px`;
-    el.style.top  = `${rect.top  + sc.y}px`;
+    el.style.left = `${sc.x}px`;
+    el.style.top  = `${sc.y}px`;
     el.style.display = 'block';
   });
 }
