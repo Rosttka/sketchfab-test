@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sketchfab Interactive Demo</title>
-  <link rel="stylesheet" href="style.css?v=7" />
+  <link rel="stylesheet" href="style.css?v=8" />
 </head>
 <body>
   <div class="sketchfab-container">
@@ -17,11 +17,17 @@
       webkitallowfullscreen="true">
     </iframe>
 
-    <!-- Оверлей поверх в’ювера -->
+    <!-- Cover, щоб приховати «пробіжку» камери під час кешування -->
+    <div id="preload-cover">
+      <div class="spinner"></div>
+      <div class="msg">Preparing view…</div>
+    </div>
+
+    <!-- Наш оверлей з кнопками -->
     <div id="ui-elements"></div>
   </div>
 
   <script src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
-  <script src="script.js?v=7"></script>
+  <script src="script.js?v=8"></script>
 </body>
 </html>
