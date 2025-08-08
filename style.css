@@ -27,8 +27,8 @@ html, body {
 #ui-elements {
   position: absolute;
   inset: 0;
-  z-index: 9999;          /* поверх iframe */
-  pointer-events: none;   /* по пустим місцям кліки йдуть у в’ювер */
+  z-index: 9999;           /* поверх iframe */
+  pointer-events: none;    /* по пустим місцям кліки йдуть у в’ювер */
 }
 
 /* Кастомні хотспоти */
@@ -36,7 +36,7 @@ html, body {
   position: absolute;
   left: 0; top: 0;
   transform: translate(-50%, -50%);
-  pointer-events: auto;   /* кліки по самій кнопці ловимо ми */
+  pointer-events: auto;    /* кліки по самій кнопці ловимо ми */
   background: #0a66ff;
   color: #fff;
   padding: 8px 10px;
