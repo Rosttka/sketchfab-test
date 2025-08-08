@@ -25,12 +25,9 @@ function onViewerReady() {
     if (err) return console.error('❌ Не дістав список анотацій:', err);
     annotations = list || [];
     createCustomHotspots();
-
-    // перше позиціонування
-    updateHotspotsPosition();
+    updateHotspotsPosition(); // перше позиціонування
   });
 
-  // Мінімальний набір подій для оновлення позицій
   api.addEventListener('viewerresize', updateHotspotsPosition);
   api.addEventListener('camerastop', updateHotspotsPosition);
   api.addEventListener('annotationFocus', () => setTimeout(updateHotspotsPosition, 200));
@@ -51,12 +48,17 @@ function createCustomHotspots() {
   console.log('✅ Кастомні хотспоти створені');
 }
 
-/**
- * Діагностична версія:
- * - НЕ ховаємо кнопки автоматично
- * - додаємо зсув iframe (на випадок, якщо він не з (0,0))
- * - лише розставляємо координати
- */
+// ---- helpers ----
+function toVec3(pos) {
+  // Повертаємо [x, y, z] з будь-якого формату
+  if (!pos) return null;
+  if (Array.isArray(pos) && pos.length >= 3) return [pos[0], pos[1], pos[2]];
+  if (typeof pos.x === 'number' && typeof pos.y === 'number' && typeof pos.z === 'number')
+    return [pos.x, pos.y, pos.z];
+  return null;
+}
+
+// -----------------
 function updateHotspotsPosition() {
   const iframe = document.getElementById('api-frame');
   const rect = iframe.getBoundingClientRect();
@@ -66,14 +68,32 @@ function updateHotspotsPosition() {
       const el = document.getElementById(`hotspot-${i}`);
       if (!el || err || !a) return;
 
-      const wp = a.worldPosition || a.position;
-      if (!wp || typeof wp.x !== 'number') return;
+      // деякі версії дають worldPosition, інші — position
+      let wp = toVec3(a.worldPosition) || toVec3(a.position);
+      if (!wp) {
+        // як fallback спробуємо й зі списку (на випадок відмінностей)
+        const fromList = annotations[i];
+        wp = toVec3(fromList && (fromList.worldPosition || fromList.position));
+      }
+      if (!wp) {
+        // показати хоча б діагностику раз
+        if (!el.dataset.warned) {
+          console.warn(`⚠️ Аннотація #${i} без валідної позиції`, a);
+          el.dataset.warned = '1';
+        }
+        return;
+      }
 
-      api.getWorldToScreenCoordinates([wp.x, wp.y, wp.z], (e2, sc) => {
-        if (e2 || !sc || typeof sc.x !== 'number' || typeof sc.y !== 'number') return;
+      api.getWorldToScreenCoordinates(wp, (e2, sc) => {
+        if (e2 || !sc || typeof sc.x !== 'number' || typeof sc.y !== 'number') {
+          if (!el.dataset.warned2) {
+            console.warn(`⚠️ Не проектується #${i}`, { e2, sc, wp });
+            el.dataset.warned2 = '1';
+          }
+          return;
+        }
 
-        // Координати віддаються в ПІКСЕЛЯХ усередині viewer-а
-        // Додаємо зсув iframe на сторінці (про всяк випадок)
+        // sc.x/sc.y — пікселі в межах viewer-а; додаємо зсув iframe на сторінці
         const x = rect.left + sc.x;
         const y = rect.top  + sc.y;
 
