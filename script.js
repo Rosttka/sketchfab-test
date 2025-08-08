@@ -1,101 +1,116 @@
 let api;
 let annotations = [];
 const uiContainer = document.getElementById('ui-elements');
+let animHandle = null;
 
 function initializeSketchfabAPI() {
-    const iframe = document.getElementById('api-frame');
-    const client = new Sketchfab(iframe);
+  const iframe = document.getElementById('api-frame');
+  const client = new Sketchfab(iframe);
 
-    client.init('40fa706855ed407fbbd0123951988cc0', {
-        success: function (fetchedApi) {
-            api = fetchedApi;
-            api.start();
+  client.init('40fa706855ed407fbbd0123951988cc0', {
+    success: (fetchedApi) => {
+      api = fetchedApi;
+      api.start();
 
-            api.addEventListener('viewerready', function () {
-                console.log('✅ Sketchfab готовий');
+      api.addEventListener('viewerready', () => {
+        console.log('✅ Sketchfab готовий');
 
-                api.getAnnotationList(function (err, fetchedAnnotations) {
-                    if (err) {
-                        console.error('❌ Помилка отримання анотацій:', err);
-                        return;
-                    }
+        // 1) тягнемо список
+        api.getAnnotationList((err, list) => {
+          if (err) {
+            console.error('❌ Помилка отримання анотацій:', err);
+            return;
+          }
+          annotations = list;
+          createCustomHotspots();
 
-                    annotations = fetchedAnnotations;
-                    console.log('✅ Отримано анотації:', annotations);
-                    createCustomHotspots();
-                });
+          // 2) одразу оновимо позиції
+          updateHotspotsPosition();
+        });
 
-                // Додай лог на кожне оновлення
-                api.addEventListener('viewerprocess', () => {
-                    console.log('🔄 Оновлення позицій хотспотів...');
-                    updateHotspotsPosition();
-                });
-            });
-        },
-        error: function () {
-            console.error('❌ Помилка ініціалізації API Sketchfab');
-        }
-    });
+        // Камера/resize — тригеримо перерахунок
+        api.addEventListener('camerastart', startUpdating);
+        api.addEventListener('camerastop', stopUpdating);
+        api.addEventListener('viewerresize', () => {
+          updateHotspotsPosition();
+        });
+      });
+    },
+    error: () => console.error('❌ Помилка ініціалізації API Sketchfab')
+  });
 }
 
 function createCustomHotspots() {
-    annotations.forEach((annotation, i) => {
-        const hotspot = document.createElement('button');
-        hotspot.className = 'custom-hotspot';
-        hotspot.id = `hotspot-${i}`;
-        hotspot.innerText = annotation.name || `Hotspot ${i+1}`;
+  annotations.forEach((a, i) => {
+    const el = document.createElement('button');
+    el.className = 'custom-hotspot';
+    el.id = `hotspot-${i}`;
+    el.innerText = a.name || `Hotspot ${i + 1}`;
+    el.onclick = () => api.gotoAnnotation(i);
+    uiContainer.appendChild(el);
+  });
+  console.log('✅ Кастомні хотспоти створені');
+}
 
-        hotspot.onclick = function () {
-            console.log(`👉 Перехід до анотації #${i}`);
-            api.gotoAnnotation(i);
-        };
-
-        uiContainer.appendChild(hotspot);
-    });
-
-    console.log('✅ Кастомні хотспоти створені');
+function startUpdating() {
+  if (animHandle) return;
+  const tick = () => {
     updateHotspotsPosition();
+    animHandle = requestAnimationFrame(tick);
+  };
+  animHandle = requestAnimationFrame(tick);
+}
+
+function stopUpdating() {
+  if (animHandle) {
+    cancelAnimationFrame(animHandle);
+    animHandle = null;
+  }
+  updateHotspotsPosition();
 }
 
 function updateHotspotsPosition() {
-    console.log('Виклик updateHotspotsPosition');
-    annotations.forEach((annotation, i) => {
-        if (!annotation.position) {
-            console.warn('⚠️ Анотація не має position:', annotation);
-            return;
+  // Для кожної анотації тягнемо СВІТОВУ позицію через getAnnotation
+  annotations.forEach((_, i) => {
+    api.getAnnotation(i, (err, a) => {
+      if (err || !a) {
+        console.warn(`⚠️ Не вдалося отримати анотацію #${i}`, err);
+        return;
+      }
+
+      const wp = a.worldPosition || a.position;
+      if (!wp || typeof wp.x !== 'number') {
+        // на всяк випадок fallback
+        return;
+      }
+
+      const world = [wp.x, wp.y, wp.z];
+
+      api.getWorldToScreenCoordinates(world, (e2, sc) => {
+        const el = document.getElementById(`hotspot-${i}`);
+        if (!el) return;
+
+        if (e2 || !sc || typeof sc.x !== 'number' || typeof sc.y !== 'number') {
+          // Якщо не проектується (позаду камери і т.д.) — сховати
+          el.style.display = 'none';
+          return;
         }
 
-        const pos = Array.isArray(annotation.position)
-            ? Array.from(annotation.position)
-            : [annotation.position.x, annotation.position.y, annotation.position.z];
+        // ВАЖЛИВО: координати вже в пікселях в межах вікна в’ювера
+        // тому НЕ додаємо iframeRect.left/top
+        el.style.left = `${sc.x}px`;
+        el.style.top = `${sc.y}px`;
 
-        console.log('Позиція анотації:', pos);
-        api.getWorldToScreenCoordinates(pos, function (err, screenCoordinates) {
-            if (err || !screenCoordinates || typeof screenCoordinates.x !== 'number' || typeof screenCoordinates.y !== 'number') {
-                console.error(`❌ Помилка getWorldToScreenCoordinates для анотації #${i}:`, err || screenCoordinates);
-                return;
-            }
-
-            // Додаємо лог координат
-            console.log(`hotspot-${i}:`, screenCoordinates.x, screenCoordinates.y);
-
-            const iframeRect = document.getElementById('api-frame').getBoundingClientRect();
-            const hotspotElement = document.getElementById(`hotspot-${i}`);
-            if (hotspotElement) {
-                hotspotElement.style.left = `${screenCoordinates.x + iframeRect.left}px`;
-                hotspotElement.style.top = `${screenCoordinates.y + iframeRect.top}px`;
-
-                const isOutside =
-                    screenCoordinates.viewport &&
-                    (screenCoordinates.viewport.x < 0 || screenCoordinates.viewport.x > 1 ||
-                     screenCoordinates.viewport.y < 0 || screenCoordinates.viewport.y > 1);
-
-                hotspotElement.style.display = isOutside ? 'none' : 'block';
-            } else {
-                console.warn(`⚠️ DOM-елемент hotspot-${i} не знайдено`);
-            }
-        });
+        // Якщо API повертає нормалізовані (viewport) — інколи є .viewport
+        if (sc.viewport) {
+          const oob = sc.viewport.x < 0 || sc.viewport.x > 1 || sc.viewport.y < 0 || sc.viewport.y > 1;
+          el.style.display = oob ? 'none' : 'block';
+        } else {
+          el.style.display = 'block';
+        }
+      });
     });
+  });
 }
 
 window.addEventListener('DOMContentLoaded', initializeSketchfabAPI);
